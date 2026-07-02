@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quantara — Your financial co-pilot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0f0d;--bg-2:#0e1512;--panel:#121b18;--panel-2:#16211d;
+    --line:#1f2d28;--line-bright:#2c3f38;
+    --txt:#e9f0ec;--txt-dim:#8a9a93;--txt-faint:#5d6d66;
+    --mint:#3ee0a0;--mint-deep:#1f9c6c;--gold:#e0b54a;--rust:#e8714a;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);color:var(--txt);
+    font-family:'Sora',sans-serif;font-size:16px;line-height:1.6;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;
+    min-height:100vh;display:flex;flex-direction:column;
+  }
+  ::selection{background:var(--mint);color:var(--bg)}
+  body::before{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(620px 420px at 78% 6%,rgba(62,224,160,.10),transparent 70%),
+      radial-gradient(540px 380px at 8% 94%,rgba(224,181,74,.07),transparent 70%);
+  }
+  body::after{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.4;
+    background-image:
+      linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);
+    background-size:58px 58px;
+    mask-image:radial-gradient(circle at 50% 22%,#000 30%,transparent 80%);
+  }
+  .wrap{max-width:1140px;margin:0 auto;padding:0 34px;position:relative;z-index:2;width:100%}
+
+  /* ---- nav ---- */
+  nav{
+    position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);
+    background:rgba(10,15,13,.8);border-bottom:1px solid var(--line);
+  }
+  .nav-in{display:flex;justify-content:space-between;align-items:center;
+    max-width:1140px;margin:0 auto;padding:15px 34px;gap:20px}
+  .logo{display:flex;align-items:center;gap:11px;font-weight:600;
+    font-size:20px;letter-spacing:-.02em;cursor:pointer;background:none;border:none;color:var(--txt)}
+  .glyph{width:32px;height:32px;flex-shrink:0;
+    display:flex;align-items:center;justify-content:center}
+  .nav-links{display:flex;gap:6px;align-items:center}
+  .nav-links button.nl{
+    background:none;border:none;cursor:pointer;color:var(--txt-dim);
+    font-family:'Sora',sans-serif;font-size:14.5px;padding:8px 13px;
+    border-radius:7px;transition:color .18s,background .18s;
+  }
+  .nav-links button.nl:hover{color:var(--txt)}
+  .nav-links button.nl.active{color:var(--txt);background:var(--panel)}
+  .nav-cta{
+    font-family:'IBM Plex Mono',monospace;font-size:13px;
+    color:var(--bg);background:var(--mint);border:none;cursor:pointer;
+    padding:10px 18px;border-radius:7px;font-weight:500;margin-left:8px;
+    transition:transform .12s,box-shadow .2s;
+  }
+  .nav-cta:hover{box-shadow:0 0 24px rgba(62,224,160,.45)}
+  .nav-cta:active{transform:translateY(1px)}
+  .menu-btn{display:none;background:none;border:none;cursor:pointer;padding:6px}
+  .menu-btn span{display:block;width:22px;height:2px;background:var(--txt);margin:4px 0;border-radius:2px}
+
+  main{flex:1;position:relative;z-index:2}
+  .page{display:none}
+  .page.show{display:block;animation:fade .4s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  /* ---- shared bits ---- */
+  .btn-primary{
+    background:var(--mint);color:var(--bg);border:none;cursor:pointer;
+    font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:500;
+    padding:15px 28px;border-radius:9px;display:inline-block;
+    transition:transform .12s,box-shadow .25s;
+  }
+  .btn-primary:hover{box-shadow:0 0 30px rgba(62,224,160,.45)}
+  .btn-primary:active{transform:translateY(1px)}
+  .btn-ghost{
+    font-family:'IBM Plex Mono',monospace;font-size:14px;
+    color:var(--txt);border:1px solid var(--line-bright);background:none;cursor:pointer;
+    padding:15px 24px;border-radius:9px;display:inline-block;
+    transition:border-color .2s,background .2s;
+  }
+  .btn-ghost:hover{border-color:var(--mint);background:var(--panel)}
+  .kicker{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.14em;
+    text-transform:uppercase;color:var(--mint);margin-bottom:18px}
+  .grad{background:linear-gradient(110deg,var(--mint),var(--gold));
+    -webkit-background-clip:text;background-clip:text;color:transparent}
+  .page-head{padding:70px 0 38px;text-align:center}
+  .page-head h1{font-weight:600;font-size:clamp(34px,5vw,56px);
+    letter-spacing:-.035em;line-height:1.08;margin-bottom:16px}
+  .page-head p{color:var(--txt-dim);font-size:18px;max-width:560px;margin:0 auto}
+
+  /* ---- hero ---- */
+  .hero{padding:72px 0 60px}
+  .hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:58px;align-items:center}
+  .pill{display:inline-flex;align-items:center;gap:9px;
+    font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.04em;
+    color:var(--mint);border:1px solid var(--line-bright);background:var(--panel);
+    padding:7px 14px;border-radius:100px;margin-bottom:26px}
+  .pulse{width:7px;height:7px;border-radius:50%;background:var(--mint);
+    box-shadow:0 0 0 0 rgba(62,224,160,.6);animation:pulse 2.2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(62,224,160,.55)}
+    70%{box-shadow:0 0 0 9px rgba(62,224,160,0)}100%{box-shadow:0 0 0 0 rgba(62,224,160,0)}}
+  .hero h1{font-weight:600;font-size:clamp(40px,5.6vw,64px);line-height:1.07;
+    letter-spacing:-.035em;margin-bottom:22px}
+  .lede{font-size:19px;color:var(--txt-dim);max-width:520px;margin-bottom:32px}
+  .hero-actions{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+
+  /* ---- product panel ---- */
+  .panel{background:linear-gradient(180deg,var(--panel-2),var(--panel));
+    border:1px solid var(--line-bright);border-radius:16px;padding:7px;position:relative;
+    box-shadow:0 30px 70px -28px rgba(0,0,0,.85)}
+  .panel-glow{position:absolute;inset:-1px;border-radius:16px;z-index:-1;
+    background:linear-gradient(140deg,rgba(62,224,160,.4),transparent 55%);
+    filter:blur(14px);opacity:.6}
+  .panel-bar{display:flex;align-items:center;gap:7px;padding:11px 14px}
+  .panel-bar .d{width:9px;height:9px;border-radius:50%;background:var(--line-bright)}
+  .panel-bar .label{margin-left:8px;font-family:'IBM Plex Mono',monospace;
+    font-size:11px;color:var(--txt-faint);letter-spacing:.05em}
+  .panel-bar .extag{margin-left:auto;font-family:'IBM Plex Mono',monospace;
+    font-size:10px;letter-spacing:.08em;color:var(--gold);
+    border:1px solid rgba(224,181,74,.35);background:rgba(224,181,74,.08);
+    padding:3px 9px;border-radius:5px}
+  .panel-body{background:var(--bg-2);border:1px solid var(--line);
+    border-radius:11px;padding:22px}
+  .stmt-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px}
+  .stmt-head .t{font-family:'IBM Plex Mono',monospace;font-size:11px;
+    letter-spacing:.1em;text-transform:uppercase;color:var(--txt-faint)}
+  .stmt-head .m{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--mint)}
+  .row{display:flex;justify-content:space-between;align-items:center;
+    padding:11px 0;border-bottom:1px solid var(--line)}
+  .row:last-of-type{border-bottom:none}
+  .row .k{font-size:14px;color:var(--txt-dim)}
+  .row .v{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:500}
+  .v.up{color:var(--mint)}.v.down{color:var(--rust)}
+  .insight{margin-top:14px;border-radius:10px;padding:15px 16px;
+    background:linear-gradient(135deg,rgba(62,224,160,.12),rgba(62,224,160,.03));
+    border:1px solid rgba(62,224,160,.25)}
+  .insight .who{display:flex;align-items:center;gap:7px;
+    font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--mint);margin-bottom:8px}
+  .insight .who .dm{width:5px;height:5px;border-radius:50%;background:var(--mint)}
+  .insight p{font-size:14.5px;color:var(--txt);line-height:1.5}
+  .insight em{color:var(--gold);font-style:normal;font-weight:600}
+  .panel-cap{text-align:center;font-family:'IBM Plex Mono',monospace;
+    font-size:11px;color:var(--txt-faint);margin-top:12px}
+
+  /* ---- trust strip ---- */
+  .trust-strip{border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+    background:var(--bg-2);padding:22px 0;margin-top:34px}
+  .trust-in{display:flex;justify-content:center;gap:40px;flex-wrap:wrap}
+  .trust-item{display:flex;align-items:center;gap:9px;
+    font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--txt-dim);letter-spacing:.02em}
+  .trust-ic{display:flex;align-items:center;color:var(--mint)}
+
+  /* ---- sections ---- */
+  .section{padding:86px 0}
+  .section h2{font-weight:600;font-size:clamp(28px,3.6vw,40px);
+    letter-spacing:-.03em;line-height:1.15;max-width:680px;margin-bottom:14px}
+  .section .sub{color:var(--txt-dim);max-width:540px;font-size:17px}
+  .band{background:linear-gradient(180deg,var(--bg-2),var(--bg));
+    border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:44px}
+  .step{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:28px 26px;transition:border-color .25s,transform .25s}
+  .step:hover{border-color:var(--line-bright);transform:translateY(-4px)}
+  .step .num{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--mint);
+    border:1px solid var(--line-bright);border-radius:7px;width:42px;height:42px;
+    display:flex;align-items:center;justify-content:center;margin-bottom:18px}
+  .step h3{font-size:19px;font-weight:600;letter-spacing:-.02em;margin-bottom:8px}
+  .step p{font-size:15px;color:var(--txt-dim)}
+  .feat{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:44px}
+  .fcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:30px 28px;position:relative;overflow:hidden;transition:border-color .25s}
+  .fcard:hover{border-color:var(--line-bright)}
+  .fcard::before{content:"";position:absolute;top:0;left:0;width:100%;height:2px;
+    background:linear-gradient(90deg,var(--mint),transparent);opacity:0;transition:opacity .3s}
+  .fcard:hover::before{opacity:1}
+  .fcard .tag{font-family:'IBM Plex Mono',monospace;font-size:12px;
+    color:var(--mint);margin-bottom:14px}
+  .fcard h3{font-size:20px;font-weight:600;letter-spacing:-.02em;margin-bottom:9px}
+  .fcard p{font-size:15px;color:var(--txt-dim)}
+  .cta-band{text-align:center}
+  .cta-band h2{margin:0 auto 14px}
+  .cta-band .sub{margin:0 auto 28px}
+
+  /* ---- how it works detail ---- */
+  .flow{display:flex;flex-direction:column;gap:22px;margin-top:20px}
+  .fstep{display:grid;grid-template-columns:64px 1fr;gap:24px;align-items:start;
+    background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:30px;transition:border-color .25s}
+  .fstep:hover{border-color:var(--line-bright)}
+  .fstep .badge{width:64px;height:64px;border-radius:12px;
+    background:linear-gradient(140deg,var(--panel-2),var(--bg-2));
+    border:1px solid var(--line-bright);display:flex;align-items:center;
+    justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:20px;color:var(--mint)}
+  .fstep h3{font-size:22px;font-weight:600;letter-spacing:-.02em;margin-bottom:8px}
+  .fstep p{color:var(--txt-dim);font-size:16px}
+  .fstep .note{margin-top:14px;font-family:'IBM Plex Mono',monospace;font-size:13px;
+    color:var(--txt-faint);border-left:2px solid var(--mint);padding-left:12px}
+  .explain{background:linear-gradient(180deg,var(--bg-2),var(--bg));
+    border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+    padding:60px 0;margin-top:60px}
+  .explain h2{font-weight:600;font-size:clamp(26px,3.3vw,34px);
+    letter-spacing:-.03em;margin-bottom:14px;max-width:620px}
+  .explain p{color:var(--txt-dim);font-size:16px;max-width:620px;margin-bottom:14px}
+  .explain p:last-child{margin-bottom:0}
+  .explain b{color:var(--txt)}
+
+  /* ---- pricing ---- */
+  .early-note{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--gold);
+    border:1px solid rgba(224,181,74,.3);background:rgba(224,181,74,.07);
+    border-radius:100px;padding:8px 18px;display:inline-block}
+  .plans{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin:46px auto 0;max-width:760px}
+  .plan{background:var(--panel);border:1px solid var(--line);border-radius:16px;
+    padding:34px 30px;text-align:left;position:relative;transition:border-color .25s,transform .25s}
+  .plan:hover{border-color:var(--line-bright);transform:translateY(-4px)}
+  .plan.featured{border-color:var(--mint-deep);box-shadow:0 0 50px -20px rgba(62,224,160,.4)}
+  .plan .flag{position:absolute;top:-12px;left:30px;
+    font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.08em;
+    background:var(--mint);color:var(--bg);padding:5px 12px;border-radius:6px;font-weight:500}
+  .plan .pname{font-family:'IBM Plex Mono',monospace;font-size:13px;
+    letter-spacing:.1em;text-transform:uppercase;color:var(--mint);margin-bottom:14px}
+  .plan .price{font-size:46px;font-weight:600;letter-spacing:-.03em;line-height:1}
+  .plan .price span{font-size:16px;color:var(--txt-faint);font-weight:400}
+  .plan .pdesc{color:var(--txt-dim);font-size:15px;margin:12px 0 22px}
+  .plan ul{list-style:none;display:flex;flex-direction:column;gap:11px;margin-bottom:26px}
+  .plan li{font-size:15px;color:var(--txt);display:flex;gap:10px;align-items:flex-start}
+  .plan li::before{content:"+";color:var(--mint);font-family:'IBM Plex Mono',monospace;
+    font-weight:600;flex-shrink:0}
+  .plan .btn-primary,.plan .btn-ghost{width:100%;text-align:center}
+  .price-foot{margin-top:42px;color:var(--txt-faint);font-size:14px;
+    max-width:520px;margin-left:auto;margin-right:auto;text-align:center}
+
+  /* ---- faq ---- */
+  .faq-list{max-width:720px;margin:10px auto 0;display:flex;flex-direction:column;gap:12px}
+  .qa{background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    overflow:hidden;transition:border-color .2s}
+  .qa:hover{border-color:var(--line-bright)}
+  .qa .q{width:100%;text-align:left;background:none;border:none;cursor:pointer;
+    padding:22px 24px;display:flex;justify-content:space-between;align-items:center;
+    gap:18px;color:var(--txt);font-family:'Sora',sans-serif;font-size:17px;font-weight:500}
+  .qa .ic{flex-shrink:0;width:24px;height:24px;border:1px solid var(--line-bright);
+    border-radius:6px;display:flex;align-items:center;justify-content:center;
+    color:var(--mint);font-family:'IBM Plex Mono',monospace;font-size:16px;
+    transition:transform .25s,background .2s}
+  .qa.open .ic{transform:rotate(45deg);background:var(--mint);color:var(--bg)}
+  .qa .a{max-height:0;overflow:hidden;transition:max-height .3s ease}
+  .qa .a p{padding:0 24px 22px;color:var(--txt-dim);font-size:15.5px;line-height:1.65}
+  .qa .a p a{color:var(--mint);cursor:pointer}
+
+  /* ---- early access ---- */
+  .ea-grid{display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:start;margin-top:20px}
+  .ea-left h2{font-weight:600;font-size:clamp(26px,3vw,34px);
+    letter-spacing:-.03em;margin-bottom:18px;line-height:1.2}
+  .perks{list-style:none;display:flex;flex-direction:column;gap:16px;margin-top:8px}
+  .perks li{display:flex;gap:13px;align-items:flex-start;color:var(--txt-dim);font-size:15.5px}
+  .perks .chk{flex-shrink:0;width:24px;height:24px;border-radius:7px;
+    background:linear-gradient(140deg,var(--mint),var(--mint-deep));
+    display:flex;align-items:center;justify-content:center}
+  .perks b{color:var(--txt);font-weight:600}
+  .form-card{background:linear-gradient(160deg,var(--panel-2),var(--panel));
+    border:1px solid var(--line-bright);border-radius:18px;
+    padding:36px 34px;position:relative;overflow:hidden}
+  .form-card::before{content:"";position:absolute;top:-50%;right:-20%;
+    width:300px;height:300px;border-radius:50%;
+    background:radial-gradient(circle,rgba(62,224,160,.16),transparent 70%)}
+  .form-card>*{position:relative;z-index:2}
+  .form-card h3{font-size:22px;font-weight:600;letter-spacing:-.02em;margin-bottom:6px}
+  .form-card .fsub{color:var(--txt-dim);font-size:14.5px;margin-bottom:24px}
+  .field{margin-bottom:16px}
+  .field label{display:block;font-family:'IBM Plex Mono',monospace;font-size:12px;
+    letter-spacing:.05em;color:var(--txt-faint);text-transform:uppercase;margin-bottom:7px}
+  .field input,.field select{width:100%;font-family:'Sora',sans-serif;font-size:15px;
+    padding:13px 15px;border-radius:9px;background:var(--bg-2);
+    border:1px solid var(--line-bright);color:var(--txt)}
+  .field input::placeholder{color:var(--txt-faint)}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--mint)}
+  .field select{cursor:pointer}
+  .submit-btn{width:100%;background:var(--mint);color:var(--bg);
+    font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:500;
+    padding:15px;border:none;border-radius:9px;cursor:pointer;margin-top:6px;
+    transition:box-shadow .25s,transform .12s}
+  .submit-btn:hover{box-shadow:0 0 28px rgba(62,224,160,.45)}
+  .submit-btn:active{transform:translateY(1px)}
+  .form-note{font-family:'IBM Plex Mono',monospace;font-size:11.5px;
+    color:var(--txt-faint);margin-top:14px;text-align:center}
+  .success{display:none;text-align:center;padding:30px 0}
+  .success .big{width:54px;height:54px;border-radius:50%;margin:0 auto 16px;
+    background:linear-gradient(140deg,var(--mint),var(--mint-deep));
+    display:flex;align-items:center;justify-content:center}
+  .success h3{font-size:21px;margin-bottom:8px}
+  .success p{color:var(--txt-dim);font-size:15px}
+
+  /* ---- footer ---- */
+  footer{border-top:1px solid var(--line);padding:40px 0;margin-top:80px;
+    position:relative;z-index:2}
+  .foot-in{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:18px}
+  .foot-links{display:flex;gap:8px;flex-wrap:wrap}
+  .foot-links button{background:none;border:none;cursor:pointer;color:var(--txt-dim);
+    font-family:'Sora',sans-serif;font-size:13.5px;padding:4px 8px;transition:color .18s}
+  .foot-links button:hover{color:var(--txt)}
+  .foot-in p{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--txt-faint)}
+  .foot-disclosure{font-size:12px;color:var(--txt-faint);line-height:1.6;
+    margin-top:22px;padding-top:18px;border-top:1px solid var(--line);max-width:760px}
+
+  .reveal{opacity:0;transform:translateY(24px);
+    transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+  .reveal.in{opacity:1;transform:none}
+
+  @media(max-width:820px){
+    .wrap,.nav-in,.foot-in{padding-left:22px;padding-right:22px}
+    .nav-links{display:none;position:absolute;top:100%;left:0;right:0;
+      flex-direction:column;gap:0;background:var(--bg-2);
+      border-bottom:1px solid var(--line);padding:8px 0}
+    .nav-links.open{display:flex}
+    .nav-links button.nl{padding:13px 34px;width:100%;text-align:left;border-radius:0}
+    .nav-cta{margin:10px 34px}
+    .menu-btn{display:block}
+    .hero-grid{grid-template-columns:1fr;gap:46px}
+    .steps,.feat,.plans,.ea-grid{grid-template-columns:1fr}
+    .section{padding:66px 0}
+    .foot-in{flex-direction:column;text-align:center}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-in">
+    <button class="logo" data-go="home">
+      <span class="glyph"><svg width="32" height="32" viewBox="0 0 30 30" fill="none">
+  <circle cx="14.5" cy="14.5" r="11" stroke="#3ee0a0" stroke-width="2.2"/>
+  <rect x="7.5" y="14" width="2.8" height="6.5" rx="0.9" fill="#3ee0a0" opacity="0.55"/>
+  <rect x="11.3" y="11" width="2.8" height="9.5" rx="0.9" fill="#3ee0a0" opacity="0.78"/>
+  <rect x="15.1" y="7.5" width="2.8" height="13" rx="0.9" fill="#3ee0a0"/>
+  <polyline points="8.9,15 12.7,11.5 16.5,8 20.3,5.8" fill="none" stroke="#e0b54a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="8.9" cy="15" r="1.2" fill="#e0b54a"/>
+  <circle cx="12.7" cy="11.5" r="1.2" fill="#e0b54a"/>
+  <circle cx="16.5" cy="8" r="1.2" fill="#e0b54a"/>
+  <circle cx="20.3" cy="5.8" r="1.2" fill="#e0b54a"/>
+  <path d="M18 21.1a2.6 2.6 0 0 1 2.6-2.6h4.3a2.6 2.6 0 0 1 2.6 2.6v1.8a2.6 2.6 0 0 1-2.6 2.6h-2.1l-2.6 2.5v-2.5a2.6 2.6 0 0 1-2.2-2.6z" fill="#1f9c6c"/>
+  <line x1="19.7" y1="21" x2="24.9" y2="21" stroke="#0a0f0d" stroke-width="1" stroke-linecap="round"/>
+  <line x1="19.7" y1="23.3" x2="23.1" y2="23.3" stroke="#0a0f0d" stroke-width="1" stroke-linecap="round"/>
+</svg></span>
+      Quantara
+    </button>
+    <button class="menu-btn" id="menuBtn"><span></span><span></span><span></span></button>
+    <div class="nav-links" id="navLinks">
+      <button class="nl" data-go="home">Home</button>
+      <button class="nl" data-go="how">How it works</button>
+      <button class="nl" data-go="try">Try it</button>
+      <button class="nl" data-go="pricing">Pricing</button>
+      <button class="nl" data-go="faq">FAQ</button>
+      <button class="nav-cta" data-go="early">Get early access</button>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+<!-- ============ HOME ============ -->
+<div class="page" id="page-home">
+  <header class="hero">
+    <div class="wrap">
+      <div class="hero-grid">
+        <div>
+          <div class="pill reveal"><span class="pulse"></span>FINTECH &middot; BUILT FOR SMALL BUSINESSES</div>
+          <h1 class="reveal">Understand your business finances, <span class="grad">without the guesswork</span>.</h1>
+          <p class="lede reveal">Quantara connects to your accounting software and turns dense financial statements into clear, plain-English answers &mdash; so you always know exactly where your business stands, and what to do next.</p>
+          <div class="hero-actions reveal">
+            <button class="btn-primary" data-go="early">Join the waitlist</button>
+            <button class="btn-ghost" data-go="how">See how it works</button>
+          </div>
+        </div>
+        <div>
+          <div class="panel reveal">
+            <div class="panel-glow"></div>
+            <div class="panel-bar">
+              <span class="d"></span><span class="d"></span><span class="d"></span>
+              <span class="label">quantara &middot; preview</span>
+              <span class="extag">EXAMPLE</span>
+            </div>
+            <div class="panel-body">
+              <div class="stmt-head"><span class="t">Profit &amp; Loss &mdash; this month</span><span class="m">&#9679; synced</span></div>
+              <div class="row"><span class="k">Revenue</span><span class="v up" data-count="18400" data-prefix="$">$0</span></div>
+              <div class="row"><span class="k">Expenses</span><span class="v down" data-count="15900" data-prefix="-$">-$0</span></div>
+              <div class="row"><span class="k">Net profit</span><span class="v up" data-count="2500" data-prefix="$">$0</span></div>
+              <div class="row"><span class="k">Cash in bank</span><span class="v down" data-count="3100" data-prefix="$">$0</span></div>
+              <div class="insight">
+                <div class="who"><span class="dm"></span>Quantara says</div>
+                <p>You're profitable this month &mdash; but <em>$7,200 in bills</em> are due in 3 weeks and you only have $3,100. Hold off on big spending until your invoices clear.</p>
+              </div>
+            </div>
+          </div>
+          <p class="panel-cap reveal">An illustration of what Quantara will show &mdash; not real data.</p>
+        </div>
+      </div>
+    </div>
+    <div class="trust-strip">
+      <div class="wrap trust-in">
+        <div class="trust-item"><span class="trust-ic"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="3.5" y="7" width="9" height="6.5" rx="1.3" stroke="#3ee0a0" stroke-width="1.3"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" stroke="#3ee0a0" stroke-width="1.3"/></svg></span>Read-only bank-level connection</div>
+        <div class="trust-item"><span class="trust-ic"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 1.5 3 9h4l-1 5.5L13 7H9l-1-5.5z" fill="#3ee0a0"/></svg></span>Works with QuickBooks &amp; Xero</div>
+        <div class="trust-item"><span class="trust-ic"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><rect x="3.5" y="7" width="9" height="6.5" rx="1.3" stroke="#3ee0a0" stroke-width="1.3"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" stroke="#3ee0a0" stroke-width="1.3"/></svg></span>Your data is never sold</div>
+        <div class="trust-item"><span class="trust-ic"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M2.5 8.5 6 12l7.5-8" stroke="#3ee0a0" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Built for non-finance owners</div>
+      </div>
+    </div>
+  </header>
+
+  <section class="section band">
+    <div class="wrap">
+      <div class="kicker reveal">The problem</div>
+      <h2 class="reveal">Most owners can't read their own financials &mdash; and that's not their fault.</h2>
+      <p class="sub reveal">A P&amp;L, a balance sheet, a cash flow report: they're written for accountants, not for the person running the business. Quantara is the intelligent layer that sits in between.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <div class="kicker reveal">How it works</div>
+      <h2 class="reveal">Three steps. No spreadsheets.</h2>
+      <div class="steps">
+        <div class="step reveal"><div class="num">01</div><h3>Connect your books</h3><p>Link QuickBooks or Xero in a single click. Quantara reads the data that's already there &mdash; no manual entry.</p></div>
+        <div class="step reveal"><div class="num">02</div><h3>Ask anything</h3><p>"Can I afford to hire?" "Why was last month worse?" Get straight answers tied to your real numbers.</p></div>
+        <div class="step reveal"><div class="num">03</div><h3>Stay ahead of trouble</h3><p>Quantara warns you before a cash crunch hits &mdash; and every answer ends in a clear recommendation.</p></div>
+      </div>
+      <div style="margin-top:34px" class="reveal"><button class="btn-ghost" data-go="how">See the full walk-through</button></div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:0">
+    <div class="wrap">
+      <div class="kicker reveal">What you get</div>
+      <h2 class="reveal">A co-pilot, not a calculator.</h2>
+      <div class="feat">
+        <div class="fcard reveal"><div class="tag">// translate</div><h3>Plain-English statements</h3><p>Every report explained in normal language &mdash; what it means, not just what it says.</p></div>
+        <div class="fcard reveal"><div class="tag">// forecast</div><h3>Cash-flow early warning</h3><p>Know weeks in advance if money is about to get tight, while you can still act on it.</p></div>
+        <div class="fcard reveal"><div class="tag">// decide</div><h3>Decisions, not dashboards</h3><p>Hiring, spending, pricing &mdash; Quantara turns raw data into a recommendation you can act on.</p></div>
+        <div class="fcard reveal"><div class="tag">// weekly</div><h3>A weekly check-in</h3><p>One short summary every week: how the business did, and the single thing to watch.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section band">
+    <div class="wrap">
+      <div class="kicker reveal">Security &amp; trust</div>
+      <h2 class="reveal">Built to be trusted with your numbers.</h2>
+      <p class="sub reveal">Quantara is early-stage, and we're upfront about that. Here's what we commit to as we build.</p>
+      <div class="feat">
+        <div class="fcard reveal"><div class="tag">// read-only</div><h3>We only look — we never touch</h3><p>Quantara's connection to QuickBooks or Xero is read-only. It can explain your numbers; it can never move money or edit your records.</p></div>
+        <div class="fcard reveal"><div class="tag">// private</div><h3>Your data isn't for sale</h3><p>Your financial information is yours. We don't sell it, and we don't share it beyond what's needed to run Quantara for you.</p></div>
+        <div class="fcard reveal"><div class="tag">// honest</div><h3>A co-pilot, not a replacement</h3><p>Quantara supports your judgment and your accountant's &mdash; it doesn't replace professional advice on taxes or major decisions.</p></div>
+        <div class="fcard reveal"><div class="tag">// early-stage</div><h3>Built in the open</h3><p>Quantara is in early development. Early-access members help shape what we build, with full visibility into our progress.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section cta-band">
+    <div class="wrap">
+      <div class="kicker reveal" style="text-align:center">Early access</div>
+      <h2 class="reveal">Be first to <span class="grad">understand</span> your business.</h2>
+      <p class="sub reveal">Quantara is in early development. Join the waitlist and we'll reach out the moment it's ready.</p>
+      <div class="reveal"><button class="btn-primary" data-go="early">Get early access</button></div>
+    </div>
+  </section>
+</div>
+
+<!-- ============ HOW IT WORKS ============ -->
+<div class="page" id="page-how">
+  <header class="page-head">
+    <div class="wrap">
+      <div class="kicker reveal" style="text-align:center">How it works</div>
+      <h1 class="reveal">From confusing reports<br>to <span class="grad">clear answers</span>.</h1>
+      <p class="reveal">Quantara works in three simple steps. No accounting knowledge, no spreadsheets, no setup headaches.</p>
+    </div>
+  </header>
+  <section class="wrap">
+    <div class="flow">
+      <div class="fstep reveal">
+        <div class="badge">01</div>
+        <div>
+          <h3>Connect your books</h3>
+          <p>Quantara securely links to the accounting software you already use &mdash; QuickBooks or Xero. It's a one-click, read-only connection. Quantara looks at your numbers; it never moves your money or changes your records.</p>
+          <div class="note">No manual data entry. No spreadsheets to upload.</div>
+        </div>
+      </div>
+      <div class="fstep reveal">
+        <div class="badge">02</div>
+        <div>
+          <h3>Ask anything, in plain English</h3>
+          <p>Type a question the way you'd ask a smart friend who's good with money. "Can I afford to hire someone?" "Why was last month worse than usual?" "Am I actually making money?" Quantara answers using your real numbers &mdash; in normal language, not accountant-speak.</p>
+          <div class="note">Every answer ends with a recommendation, not just a figure.</div>
+        </div>
+      </div>
+      <div class="fstep reveal">
+        <div class="badge">03</div>
+        <div>
+          <h3>Stay ahead of trouble</h3>
+          <p>This is the part that protects your business. Quantara watches your cash flow and warns you <i>before</i> a problem hits &mdash; like spotting that you look profitable on paper but are weeks away from running short on cash. You also get one short summary each week: how things went, and the one thing to watch.</p>
+          <div class="note">Catches the dangerous things most owners miss.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <section class="explain">
+    <div class="wrap">
+      <h2 class="reveal">What are QuickBooks and Xero?</h2>
+      <p class="reveal">They're the accounting software most small businesses already use to track their money &mdash; every sale, every bill, every payment. The software organizes it all into the standard financial statements automatically.</p>
+      <p class="reveal"><b>Quantara doesn't replace them.</b> It sits on top. Your financial data already lives in QuickBooks or Xero, neatly organized &mdash; the problem is it's hard to understand. Quantara is the translator that turns it into something you can actually use.</p>
+    </div>
+  </section>
+  <section class="section cta-band">
+    <div class="wrap">
+      <div class="kicker reveal" style="text-align:center">Ready when you are</div>
+      <h2 class="reveal">See it work on your own numbers.</h2>
+      <p class="sub reveal">Quantara is in early development. Join the waitlist to be among the first businesses to try it.</p>
+      <div class="reveal"><button class="btn-primary" data-go="early">Get early access</button></div>
+    </div>
+  </section>
+</div>
+
+<!-- ============ PRICING ============ -->
+<div class="page" id="page-pricing">
+  <header class="page-head">
+    <div class="wrap">
+      <div class="kicker reveal" style="text-align:center">Pricing</div>
+      <h1 class="reveal">Simple pricing,<br>built for <span class="grad">small budgets</span>.</h1>
+      <p class="reveal" style="margin-bottom:18px">One plan. No hidden fees. Cancel anytime.</p>
+      <div class="reveal"><span class="early-note">Early-access pricing &mdash; final pricing may change at launch</span></div>
+    </div>
+  </header>
+  <section class="wrap" style="text-align:center">
+    <div class="plans">
+      <div class="plan reveal">
+        <div class="pname">Free Trial</div>
+        <div class="price">$0<span> / 14 days</span></div>
+        <p class="pdesc">Try Quantara on your real numbers before you pay a cent.</p>
+        <ul>
+          <li>Connect QuickBooks or Xero</li>
+          <li>Plain-English statement breakdowns</li>
+          <li>Ask unlimited questions</li>
+          <li>No credit card to start</li>
+        </ul>
+        <button class="btn-ghost" data-go="early">Start free</button>
+      </div>
+      <div class="plan featured reveal">
+        <div class="flag">FULL ACCESS</div>
+        <div class="pname">Quantara Pro</div>
+        <div class="price">$39<span> / month</span></div>
+        <p class="pdesc">Everything you need to stay on top of your business finances.</p>
+        <ul>
+          <li>Everything in the free trial</li>
+          <li>Cash-flow early-warning alerts</li>
+          <li>Weekly plain-English check-in</li>
+          <li>Decision recommendations</li>
+          <li>Email &amp; chat support</li>
+        </ul>
+        <button class="btn-primary" data-go="early">Get early access</button>
+      </div>
+    </div>
+    <p class="price-foot reveal">Quantara is built for small business budgets &mdash; less than the cost of an hour with an accountant, every month. Early-access members lock in this price.</p>
+  </section>
+</div>
+
+<!-- ============ FAQ ============ -->
+<div class="page" id="page-faq">
+  <header class="page-head">
+    <div class="wrap">
+      <div class="kicker reveal" style="text-align:center">FAQ</div>
+      <h1 class="reveal">Questions, <span class="grad">answered</span>.</h1>
+      <p class="reveal">The things small business owners ask us most.</p>
+    </div>
+  </header>
+  <section class="wrap">
+    <div class="faq-list">
+      <div class="qa reveal"><button class="q">Is my financial data safe?<span class="ic">+</span></button>
+        <div class="a"><p>Security is the foundation of Quantara. The connection to QuickBooks or Xero is read-only &mdash; Quantara can view your numbers to explain them, but it can never move money or change your records. Your data is encrypted, and we'll never sell it. As Quantara approaches launch, we'll publish full details on our security practices.</p></div></div>
+      <div class="qa reveal"><button class="q">Do I still need an accountant?<span class="ic">+</span></button>
+        <div class="a"><p>Yes &mdash; and that's intentional. Quantara helps you understand your finances day to day and catch problems early, but it isn't a replacement for a professional accountant on big decisions like taxes. Think of Quantara as the tool that helps you know which questions to bring to your accountant in the first place.</p></div></div>
+      <div class="qa reveal"><button class="q">What if I don't use QuickBooks or Xero?<span class="ic">+</span></button>
+        <div class="a"><p>Right now Quantara is being built around QuickBooks and Xero because that's where most small businesses keep their books. Support for more accounting tools is on the roadmap. Join the waitlist and tell us what you use &mdash; it genuinely helps us decide what to build next.</p></div></div>
+      <div class="qa reveal"><button class="q">What kind of business is Quantara for?<span class="ic">+</span></button>
+        <div class="a"><p>Quantara is built for small business owners who aren't finance experts &mdash; salons, contractors, restaurants, agencies, online shops, and more. If you've ever looked at your own financial statements and felt lost, Quantara is for you.</p></div></div>
+      <div class="qa reveal"><button class="q">How much will it cost?<span class="ic">+</span></button>
+        <div class="a"><p>Quantara starts with a free 14-day trial, then a simple monthly subscription &mdash; planned at $39/month during early access. There's a full breakdown on our <a data-go="pricing">pricing page</a>. Early-access members lock in that price.</p></div></div>
+      <div class="qa reveal"><button class="q">When can I actually use it?<span class="ic">+</span></button>
+        <div class="a"><p>Quantara is in early development. We're rolling it out gradually to the people on our waitlist. Join the list and we'll reach out the moment your spot opens up.</p></div></div>
+      <div class="qa reveal"><button class="q">Does Quantara give me financial advice?<span class="ic">+</span></button>
+        <div class="a"><p>Quantara explains your numbers and points out things worth your attention &mdash; like a tight cash-flow week ahead. For major financial or tax decisions, it will always encourage you to confirm with a qualified professional. It's a co-pilot, not a licensed advisor.</p></div></div>
+    </div>
+  </section>
+  <section class="section cta-band">
+    <div class="wrap">
+      <div class="kicker reveal" style="text-align:center">Still curious?</div>
+      <h2 class="reveal">The best way to get it is to try it.</h2>
+      <p class="sub reveal">Join the early-access waitlist and see Quantara work on your own business.</p>
+      <div class="reveal"><button class="btn-primary" data-go="early">Get early access</button></div>
+    </div>
+  </section>
+</div>
+
+<!-- ============ TRY IT (LIVE DEMO) ============ -->
+<div class="page" id="page-try">
+  <header class="page-head">
+    <div class="wrap">
+      <div class="kicker reveal" style="text-align:center">Live preview</div>
+      <h1 class="reveal">See Quantara explain <span class="grad">your numbers</span>.</h1>
+      <p class="reveal">Type in a few basic numbers &mdash; no jargon needed &mdash; and Quantara will explain what they mean and what to do next. This is an early preview of the real product.</p>
+    </div>
+  </header>
+  <section class="wrap">
+    <div class="ea-grid">
+      <div class="form-card reveal">
+        <h3>Your numbers</h3>
+        <p class="fsub">Rough figures are fine. Nothing is saved.</p>
+        <div class="field"><label for="t-rev">Money coming in per month (revenue)</label>
+          <input type="number" id="t-rev" placeholder="18400" min="0"></div>
+        <div class="field"><label for="t-exp">Money going out per month (expenses)</label>
+          <input type="number" id="t-exp" placeholder="15900" min="0"></div>
+        <div class="field"><label for="t-cash">Cash in the bank right now</label>
+          <input type="number" id="t-cash" placeholder="3100" min="0"></div>
+        <div class="field"><label for="t-bills">Bills due soon (optional)</label>
+          <input type="number" id="t-bills" placeholder="7200" min="0"></div>
+        <div class="field"><label for="t-when">When are they due? (optional)</label>
+          <input type="text" id="t-when" placeholder="in 3 weeks" maxlength="60"></div>
+        <div class="field"><label for="t-biz">Business type</label>
+          <select id="t-biz">
+            <option value="">Select one&hellip;</option>
+            <option>Service business (salon, agency, contractor)</option>
+            <option>Restaurant or food</option>
+            <option>Retail or e-commerce</option>
+            <option>Other</option>
+          </select></div>
+        <div class="field"><label for="t-notes">Anything on your mind? (optional)</label>
+          <input type="text" id="t-notes" placeholder="thinking about hiring someone" maxlength="300"></div>
+        <button class="submit-btn" id="t-go">Explain my numbers</button>
+        <p class="form-note">Early preview &mdash; not professional financial advice.</p>
+      </div>
+      <div class="reveal">
+        <div class="panel" id="t-result-panel" style="display:none">
+          <div class="panel-glow"></div>
+          <div class="panel-bar"><span class="d"></span><span class="d"></span><span class="d"></span><span class="label">quantara &middot; your explanation</span></div>
+          <div class="panel-body">
+            <div class="insight" style="margin-top:0">
+              <div class="who"><span class="dm"></span>Quantara says</div>
+              <div id="t-answer" style="font-size:14.5px;color:var(--txt);line-height:1.6"></div>
+            </div>
+          </div>
+        </div>
+        <div id="t-waiting" style="display:none;text-align:center;padding:60px 20px;color:var(--txt-dim);font-family:'IBM Plex Mono',monospace;font-size:13px">Quantara is reading your numbers&hellip;</div>
+        <div id="t-empty" style="text-align:center;padding:60px 20px;color:var(--txt-faint);font-family:'IBM Plex Mono',monospace;font-size:13px">Your explanation will appear here.</div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ============ EARLY ACCESS ============ -->
+<div class="page" id="page-early">
+  <header class="page-head">
+    <div class="wrap">
+      <div class="kicker reveal" style="text-align:center">Early access</div>
+      <h1 class="reveal">Get <span class="grad">early access</span><br>to Quantara.</h1>
+      <p class="reveal">Join the waitlist. We'll reach out the moment Quantara is ready for your business.</p>
+    </div>
+  </header>
+  <section class="wrap">
+    <div class="ea-grid">
+      <div class="ea-left reveal">
+        <h2>Why join early?</h2>
+        <ul class="perks">
+          <li><span class="chk"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6.5L4.7 9L10 3" stroke="#0a0f0d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><b>Be first in line.</b> Early-access members get into Quantara before the public.</span></li>
+          <li><span class="chk"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6.5L4.7 9L10 3" stroke="#0a0f0d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><b>Lock in early pricing.</b> Keep the $39/month early rate even after launch.</span></li>
+          <li><span class="chk"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6.5L4.7 9L10 3" stroke="#0a0f0d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><b>Shape the product.</b> Your feedback directly influences what we build next.</span></li>
+          <li><span class="chk"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6.5L4.7 9L10 3" stroke="#0a0f0d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><b>No commitment.</b> Joining the waitlist is free and you can leave anytime.</span></li>
+        </ul>
+      </div>
+      <div class="form-card reveal">
+        <!-- =====================================================================
+             SIGNUP FORM
+             To collect real emails: create a free form at formspree.io, then
+             replace  YOUR_FORM_ID  below with the ID Formspree gives you.
+             Until then, the form shows a success message but does not store data.
+             ===================================================================== -->
+        <form id="eaForm" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+          <h3>Join the waitlist</h3>
+          <p class="fsub">Takes 20 seconds. No spam, ever.</p>
+          <div class="field"><label for="name">Your name</label>
+            <input type="text" id="name" name="name" placeholder="Jordan Lee" required></div>
+          <div class="field"><label for="email">Email address</label>
+            <input type="email" id="email" name="email" placeholder="you@yourbusiness.com" required></div>
+          <div class="field"><label for="biz">Business type</label>
+            <select id="biz" name="business_type">
+              <option value="">Select one&hellip;</option>
+              <option>Service business (salon, agency, contractor)</option>
+              <option>Restaurant or food</option>
+              <option>Retail or e-commerce</option>
+              <option>Other</option>
+            </select></div>
+          <div class="field"><label for="soft">Accounting software you use</label>
+            <select id="soft" name="accounting_software">
+              <option value="">Select one&hellip;</option>
+              <option>QuickBooks</option>
+              <option>Xero</option>
+              <option>Something else</option>
+              <option>None / spreadsheets</option>
+            </select></div>
+          <button type="submit" class="submit-btn">Join the waitlist &rarr;</button>
+          <p class="form-note">By joining you agree to receive occasional updates about Quantara.</p>
+        </form>
+        <div class="success" id="success">
+          <div class="big"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 12.5L9.5 18L20 6" stroke="#0a0f0d" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+          <h3>You're on the list!</h3>
+          <p>Thanks for joining. We'll be in touch the moment Quantara is ready for your business.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-in">
+      <button class="logo" data-go="home"><span class="glyph"><svg width="32" height="32" viewBox="0 0 30 30" fill="none">
+  <circle cx="14.5" cy="14.5" r="11" stroke="#3ee0a0" stroke-width="2.2"/>
+  <rect x="7.5" y="14" width="2.8" height="6.5" rx="0.9" fill="#3ee0a0" opacity="0.55"/>
+  <rect x="11.3" y="11" width="2.8" height="9.5" rx="0.9" fill="#3ee0a0" opacity="0.78"/>
+  <rect x="15.1" y="7.5" width="2.8" height="13" rx="0.9" fill="#3ee0a0"/>
+  <polyline points="8.9,15 12.7,11.5 16.5,8 20.3,5.8" fill="none" stroke="#e0b54a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="8.9" cy="15" r="1.2" fill="#e0b54a"/>
+  <circle cx="12.7" cy="11.5" r="1.2" fill="#e0b54a"/>
+  <circle cx="16.5" cy="8" r="1.2" fill="#e0b54a"/>
+  <circle cx="20.3" cy="5.8" r="1.2" fill="#e0b54a"/>
+  <path d="M18 21.1a2.6 2.6 0 0 1 2.6-2.6h4.3a2.6 2.6 0 0 1 2.6 2.6v1.8a2.6 2.6 0 0 1-2.6 2.6h-2.1l-2.6 2.5v-2.5a2.6 2.6 0 0 1-2.2-2.6z" fill="#1f9c6c"/>
+  <line x1="19.7" y1="21" x2="24.9" y2="21" stroke="#0a0f0d" stroke-width="1" stroke-linecap="round"/>
+  <line x1="19.7" y1="23.3" x2="23.1" y2="23.3" stroke="#0a0f0d" stroke-width="1" stroke-linecap="round"/>
+</svg></span>Quantara</button>
+      <div class="foot-links">
+        <button data-go="how">How it works</button>
+        <button data-go="pricing">Pricing</button>
+        <button data-go="faq">FAQ</button>
+        <button data-go="early">Early access</button>
+      </div>
+      <p>&copy; 2026 Quantara</p>
+    </div>
+    <p class="foot-disclosure">Quantara is an early-stage concept currently in development. Figures and product screens shown on this site are illustrative examples, not live data. Nothing on this site constitutes financial, tax, or investment advice.</p>
+  </div>
+</footer>
+
+<script>
+  const pages={home:'page-home',how:'page-how',try:'page-try',pricing:'page-pricing',faq:'page-faq',early:'page-early'};
+
+  function revealIn(scope){
+    const els=scope.querySelectorAll('.reveal');
+    els.forEach((el,i)=>{
+      el.classList.remove('in');
+      el.style.transitionDelay=(i%3*0.08)+'s';
+    });
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      els.forEach(el=>{
+        const top=el.getBoundingClientRect().top;
+        if(top<window.innerHeight+60)el.classList.add('in');
+      });
+    }));
+  }
+  const io=new IntersectionObserver((e)=>{
+    e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('in')})
+  },{threshold:.12});
+  document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+  function goTo(key){
+    if(!pages[key])key='home';
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('show'));
+    document.getElementById(pages[key]).classList.add('show');
+    document.querySelectorAll('.nl').forEach(b=>{
+      b.classList.toggle('active',b.dataset.go===key);
+    });
+    window.scrollTo({top:0,behavior:'instant'});
+    document.getElementById('navLinks').classList.remove('open');
+    revealIn(document.getElementById(pages[key]));
+    if(key==='home')runCountUp();
+  }
+  document.addEventListener('click',(e)=>{
+    const t=e.target.closest('[data-go]');
+    if(t){e.preventDefault();goTo(t.dataset.go);}
+  });
+
+  function countUp(el){
+    const t=+el.dataset.count,pre=el.dataset.prefix||'',dur=1400,s=performance.now();
+    function tick(n){const p=Math.min((n-s)/dur,1), e=1-Math.pow(1-p,3);
+      el.textContent=pre+Math.round(t*e).toLocaleString('en-US');
+      if(p<1)requestAnimationFrame(tick);}
+    requestAnimationFrame(tick);
+  }
+  function runCountUp(){document.querySelectorAll('.v[data-count]').forEach(countUp);}
+
+  document.querySelectorAll('.qa .q').forEach(q=>{
+    q.addEventListener('click',()=>{
+      const qa=q.parentElement,a=qa.querySelector('.a'),open=qa.classList.contains('open');
+      document.querySelectorAll('.qa').forEach(o=>{o.classList.remove('open');o.querySelector('.a').style.maxHeight=null});
+      if(!open){qa.classList.add('open');a.style.maxHeight=a.scrollHeight+'px'}
+    });
+  });
+
+  document.getElementById('menuBtn').addEventListener('click',()=>{
+    document.getElementById('navLinks').classList.toggle('open');
+  });
+
+  const form=document.getElementById('eaForm'),success=document.getElementById('success');
+  form.addEventListener('submit',async(e)=>{
+    e.preventDefault();
+    if(form.action.includes('YOUR_FORM_ID')){
+      form.style.display='none';success.style.display='block';return;
+    }
+    try{
+      const res=await fetch(form.action,{method:'POST',body:new FormData(form),headers:{'Accept':'application/json'}});
+      if(res.ok){form.style.display='none';success.style.display='block';}
+      else{alert('Something went wrong — please try again.');}
+    }catch(err){alert('Something went wrong — please try again.');}
+  });
+
+  // ---- Try It demo ----
+  const tGo=document.getElementById('t-go');
+  if(tGo){
+    tGo.addEventListener('click',async()=>{
+      const rev=document.getElementById('t-rev').value.trim();
+      const exp=document.getElementById('t-exp').value.trim();
+      const cash=document.getElementById('t-cash').value.trim();
+      if(rev===''||exp===''||cash===''){
+        alert('Please fill in revenue, expenses, and cash — the first three boxes.');return;
+      }
+      const payload={
+        revenue:rev,expenses:exp,cash:cash,
+        billsDue:document.getElementById('t-bills').value.trim()||undefined,
+        billsWhen:document.getElementById('t-when').value.trim()||undefined,
+        bizType:document.getElementById('t-biz').value||undefined,
+        notes:document.getElementById('t-notes').value.trim()||undefined
+      };
+      document.getElementById('t-empty').style.display='none';
+      document.getElementById('t-result-panel').style.display='none';
+      document.getElementById('t-waiting').style.display='block';
+      tGo.disabled=true;tGo.textContent='Thinking…';
+      try{
+        const r=await fetch('/api/explain',{
+          method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify(payload)
+        });
+        const data=await r.json();
+        if(!r.ok||!data.answer)throw new Error(data.error||'failed');
+        // minimal safe markdown: **bold** and *italic*, line breaks
+        const esc=data.answer
+          .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+          .replace(/\*\*(.+?)\*\*/g,'<strong style="color:var(--mint)">$1</strong>')
+          .replace(/\*(.+?)\*/g,'<em style="color:var(--txt-faint)">$1</em>')
+          .replace(/\n/g,'<br>');
+        document.getElementById('t-answer').innerHTML=esc;
+        document.getElementById('t-waiting').style.display='none';
+        document.getElementById('t-result-panel').style.display='block';
+      }catch(e){
+        document.getElementById('t-waiting').style.display='none';
+        document.getElementById('t-empty').style.display='block';
+        document.getElementById('t-empty').textContent='Something went wrong — please try again in a moment.';
+      }
+      tGo.disabled=false;tGo.textContent='Explain my numbers';
+    });
+  }
+
+  goTo('home');
+</script>
+</body>
+</html>
